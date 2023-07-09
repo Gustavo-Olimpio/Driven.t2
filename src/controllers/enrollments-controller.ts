@@ -28,6 +28,7 @@ export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, re
   }
 }
 
+
 export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response) {
   const { cep } = req.query as Record<string, string>;
 
@@ -36,7 +37,7 @@ export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response
     res.status(httpStatus.OK).send(address);
   } catch (error) {
     if (error.name === 'NotFoundError') {
-      return res.send(httpStatus.NO_CONTENT);
+      return res.sendStatus(httpStatus.NO_CONTENT);
     }
   }
 }
