@@ -12,9 +12,10 @@ export async function ticketstypeGet(req: Request, res: Response) {
     }
   }
   export async function ticketsGet(req: Request, res: Response) {
-    const {authorization} = req.headers
+    const authHeader = req.header('Authorization');
+    const token = authHeader.split(' ')[1];
     try {
-      const tickets = await getTicket(authorization.toString())
+      const tickets = await getTicket(token.toString())
       return res.status(httpStatus.OK).send(tickets);
     } catch (error) {
       if (error.name === 'NotFoundError') {
@@ -24,11 +25,12 @@ export async function ticketstypeGet(req: Request, res: Response) {
     }
   }
   export async function ticketsPost(req: Request, res: Response) {
-    const {authorization} = req.headers
+    const authHeader = req.header('Authorization');
+    const token = authHeader.split(' ')[1];
     const {ticketTypeId} = req.body
     try {
-      const obj = await postTicket(authorization.toString(),parseInt(ticketTypeId))
-      res.status(httpStatus.CREATED).send(obj)
+      const obj = await postTicket(token.toString(),parseInt(ticketTypeId))
+      return res.status(httpStatus.CREATED).send(obj)
     } catch (error) {
       if (error.name === 'NotFoundError') {
         return res.sendStatus(httpStatus.NOT_FOUND);
@@ -37,12 +39,13 @@ export async function ticketstypeGet(req: Request, res: Response) {
     }
   }
   export async function paymentsGet(req: Request, res: Response) {
-    const {authorization} = req.headers
+    const authHeader = req.header('Authorization');
+    const token = authHeader.split(' ')[1];
     const {ticketId} = req.query
   
     try {
-      const obj = await getPayments(authorization.toString(),Number(ticketId))
-      res.status(httpStatus.OK).send(obj)
+      const obj = await getPayments(token.toString(),Number(ticketId))
+      return res.status(httpStatus.OK).send(obj)
     } catch (error) {
       if (error.name === 'NotFoundError') {
         return res.sendStatus(httpStatus.NOT_FOUND);
@@ -54,11 +57,12 @@ export async function ticketstypeGet(req: Request, res: Response) {
     }
   }
   export async function paymentsPost(req: Request, res: Response) {
-    const { authorization } = req.headers;
+    const authHeader = req.header('Authorization');
+    const token = authHeader.split(' ')[1];
     const payment = req.body as Payment;
   
     try {
-      const payments = await postPayment(authorization.toString(), payment)
+      const payments = await postPayment(token.toString(), payment)
       return res.status(httpStatus.OK).send(payments);
 
 
