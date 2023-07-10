@@ -14,9 +14,15 @@ async function getTickets(token:string) {
     if(!user){
       throw notFoundError();
     }
+    const enrollment = await prisma.enrollment.findFirst({
+      where:{
+        userId:user.id
+      }
+      })
+
     return prisma.ticket.findFirst({
       where:{
-        id:user.userId
+        enrollmentId:enrollment.id
       }
       });
   }
