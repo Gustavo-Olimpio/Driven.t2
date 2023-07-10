@@ -6,7 +6,6 @@ async function getTicketsType() {
   }
 
 async function getTickets(token:string) {
-  console.log("entrou no repository")
     const user = await prisma.session.findFirst({
     where:{
       token:token
@@ -22,12 +21,39 @@ async function getTickets(token:string) {
         userId:user.userId
       }
       })
-      
-    return prisma.ticket.findFirst({
+    if(!enrollment){
+        throw notFoundError();
+    }
+
+    const ticket = await prisma.ticket.findFirst({
       where:{
         enrollmentId:enrollment.id
       }
       });
+      const ticketType = await prisma.ticketType.findFirst({
+        where:{
+          id:ticket.ticketTypeId
+        }
+        });
+
+      const obj = {
+        id: ticket.id,
+        status: ticket.status, 
+        ticketTypeId: ticket.ticketTypeId,
+        enrollmentId: enrollment.id,
+        TicketType: {
+          id: ticketType.id,
+          name: ticketType.name,
+          price: ticketType.price,
+          isRemote: ticketType.isRemote,
+          includesHotel: ticketType.includesHotel,
+          createdAt: ticketType.createdAt,
+          updatedAt: ticketType.updatedAt,
+        },
+        createdAt:ticket.createdAt,
+        updatedAt: ticket.updatedAt
+      }
+      return obj
   }
 
   async function postTickets(token:string,ticketTypeId:number) {
