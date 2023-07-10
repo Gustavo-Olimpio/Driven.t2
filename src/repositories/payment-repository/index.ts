@@ -6,20 +6,23 @@ async function getTicketsType() {
   }
 
 async function getTickets(token:string) {
+  console.log("entrou no repository")
     const user = await prisma.session.findFirst({
     where:{
       token:token
     }
     })
+    
     if(!user){
       throw notFoundError();
     }
+    console.log(user.userId)
     const enrollment = await prisma.enrollment.findFirst({
       where:{
-        userId:user.id
+        userId:user.userId
       }
       })
-
+      
     return prisma.ticket.findFirst({
       where:{
         enrollmentId:enrollment.id
@@ -33,6 +36,7 @@ async function getTickets(token:string) {
         token:token
       }
       })
+     
       if (!user){
         throw notFoundError();
       }
