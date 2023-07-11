@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 import { getTicketType,getTicket,postTicket,getPayments,postPayment } from '@/services/payment-service';
 import { Payment } from '@/protocols';
+import { AuthenticatedRequest } from '@/middlewares';
 
 export async function ticketstypeGet(req: Request, res: Response) {
     try {
@@ -11,11 +12,10 @@ export async function ticketstypeGet(req: Request, res: Response) {
       return res.status(httpStatus.BAD_REQUEST).send(error);
     }
   }
-  export async function ticketsGet(req: Request, res: Response) {
-    const authHeader = req.header('Authorization');
-    const token = authHeader.split(' ')[1];
+  export async function ticketsGet(req: AuthenticatedRequest, res: Response) {
+    const { userId } = req;
     try {
-      const tickets = await getTicket(token.toString())
+      const tickets = await getTicket(Number(userId))
       return res.status(httpStatus.OK).send(tickets);
     } catch (error) {
       if (error.name === 'NotFoundError') {
@@ -24,12 +24,11 @@ export async function ticketstypeGet(req: Request, res: Response) {
       return res.status(httpStatus.BAD_REQUEST).send(error);
     }
   }
-  export async function ticketsPost(req: Request, res: Response) {
-    const authHeader = req.header('Authorization');
-    const token = authHeader.split(' ')[1];
+  export async function ticketsPost(req: AuthenticatedRequest, res: Response) {
+    const { userId } = req;
     const {ticketTypeId} = req.body
     try {
-      const obj = await postTicket(token.toString(),parseInt(ticketTypeId))
+      const obj = await postTicket(Number(userId),parseInt(ticketTypeId))
       return res.status(httpStatus.CREATED).send(obj)
     } catch (error) {
       if (error.name === 'NotFoundError') {
@@ -38,13 +37,12 @@ export async function ticketstypeGet(req: Request, res: Response) {
       return res.status(httpStatus.BAD_REQUEST).send(error);
     }
   }
-  export async function paymentsGet(req: Request, res: Response) {
-    const authHeader = req.header('Authorization');
-    const token = authHeader.split(' ')[1];
+  export async function paymentsGet(req: AuthenticatedRequest, res: Response) {
+    const { userId } = req;
     const {ticketId} = req.query
   
     try {
-      const obj = await getPayments(token.toString(),Number(ticketId))
+      const obj = await getPayments(Number(userId),Number(ticketId))
       return res.status(httpStatus.OK).send(obj)
     } catch (error) {
       if (error.name === 'NotFoundError') {
@@ -56,13 +54,12 @@ export async function ticketstypeGet(req: Request, res: Response) {
       return res.status(httpStatus.BAD_REQUEST).send(error);
     }
   }
-  export async function paymentsPost(req: Request, res: Response) {
-    const authHeader = req.header('Authorization');
-    const token = authHeader.split(' ')[1];
+  export async function paymentsPost(req: AuthenticatedRequest, res: Response) {
+    const { userId } = req;
     const payment = req.body as Payment;
-  
+    
     try {
-      const payments = await postPayment(token.toString(), payment)
+      const payments = await postPayment(Number(userId), payment)
       return res.status(httpStatus.OK).send(payments);
 
 

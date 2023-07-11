@@ -1,4 +1,4 @@
-import { notFoundError } from "@/errors";
+import { notFoundError,unauthorizedError } from "@/errors";
 import paymentRepository from "@/repositories/payment-repository";
 import { Payment } from "@/protocols";
 
@@ -7,33 +7,33 @@ export async function getTicketType() {
     return tickets
 }
 
-export async function getTicket(token:string) {
-    const tickets = await paymentRepository.getTickets(token);
+export async function getTicket(userId:number) {
+    const tickets = await paymentRepository.getTickets(userId);
     if(!tickets){
         throw notFoundError();
     }
     return tickets
 }
 
-export async function postTicket(token:string,ticketTypeId:number) {
+export async function postTicket(userId:number,ticketTypeId:number) {
     if (!ticketTypeId){
         throw "error"
     }
-    const obj = await paymentRepository.postTickets(token,ticketTypeId);
+    const obj = await paymentRepository.postTickets(userId,ticketTypeId);
     return obj
 }
-export async function getPayments(token:string,ticketId:number) {
+export async function getPayments(userId:number,ticketId:number) {
     if (!ticketId){
         throw "error"
     }
-    const obj = await paymentRepository.getPayments(token,ticketId);
+    const obj = await paymentRepository.getPayments(userId,ticketId);
     return obj
 }
 
-export async function postPayment(token: string, payment: Payment){
-    const tickets = await paymentRepository.getTickets(token);
-    if(!tickets){
-        throw notFoundError();
-    };
-    return await paymentRepository.createPayment(payment);
+export async function postPayment(userId:number, payment: Payment){
+    if(!payment.ticketId || !payment.cardData){
+        throw "error"
+    }
+  
+    return await paymentRepository.createPayment(payment,userId);
 };

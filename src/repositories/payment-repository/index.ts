@@ -5,20 +5,19 @@ async function getTicketsType() {
     return prisma.ticketType.findMany();
   }
 
-async function getTickets(token:string) {
-    const user = await prisma.session.findFirst({
+async function getTickets(userId:number) {
+    const user = await prisma.user.findFirst({
     where:{
-      token:token
+      id:userId
     }
     })
     
     if(!user){
       throw notFoundError();
     }
-    console.log(user.userId)
     const enrollment = await prisma.enrollment.findFirst({
       where:{
-        userId:user.userId
+        userId:userId
       }
       })
     if(!enrollment){
@@ -30,6 +29,9 @@ async function getTickets(token:string) {
         enrollmentId:enrollment.id
       }
       });
+      if(!ticket){
+        throw notFoundError();
+    }
       const ticketType = await prisma.ticketType.findFirst({
         where:{
           id:ticket.ticketTypeId
@@ -56,22 +58,16 @@ async function getTickets(token:string) {
       return obj
   }
 
-  async function postTickets(token:string,ticketTypeId:number) {
-    const user = await prisma.session.findFirst({
-      where:{
-        token:token
-      }
-      })
-     
-      if (!user){
-        throw notFoundError();
-      }
-    const id = user.userId
+  async function postTickets(userId:number,ticketTypeId:number) {
+  
     const enrollment = await prisma.enrollment.findFirst({
       where:{
-        userId:id
+        userId:userId
       }
       })
+      if (!enrollment){
+       throw notFoundError();
+      }
       const ticketType = await prisma.ticketType.findFirst({
         where:{
           id:ticketTypeId
@@ -109,23 +105,22 @@ async function getTickets(token:string) {
     return obj
   }
 
-  async function getPayments(token:string,ticketId:number) {
-    const user = await prisma.session.findFirst({
-      where:{
-        token:token
-      }
-      })
+  async function getPayments(userId:number,ticketId:number) {
       const ticket = await prisma.ticket.findFirst({
         where:{
           id:ticketId
         }
         })
+        if (!ticket){
+          
+          throw notFoundError();
+        }
         const enrollment = await prisma.enrollment.findFirst({
           where:{
             id:ticket.enrollmentId
           }
           })
-        if(user.id !== enrollment.userId){
+        if(userId !== enrollment.userId){
           throw unauthorizedError();
         }
    
@@ -139,7 +134,13 @@ async function getTickets(token:string) {
     }
     return payment
   }
-  async function createPayment(payment: Payment) {
+  async function createPayment(payment: Payment,userId:number) {
+    const enrollment = await prisma.enrollment.findFirst({
+      where:{
+        userId:userId
+      }
+    })
+    
     const ticket = await prisma.ticket.findFirst({
         where: {
             id: payment.ticketId
@@ -152,16 +153,19 @@ async function getTickets(token:string) {
             }
         }
     });
+ 
+    if(!ticket){
+      throw notFoundError();
+    }
+    if(enrollment.id !== ticket.enrollmentId){
+        throw unauthorizedError();
+    }
     const ticketIdExists = await prisma.payment.findFirst({
         where: { ticketId: payment.ticketId }
     })
 
-    if (!ticketIdExists){
-        throw notFoundError();
-    }
-
     const numbers = payment.cardData.number.toString();
-    const lastDigits = numbers[12] + numbers[13] + numbers[14] + numbers[15]
+    const lastDigits = numbers[11] + numbers[12] + numbers[13] + numbers[14]
     const pay = await prisma.payment.create({
         data: {
             ticketId: payment.ticketId,
@@ -170,6 +174,14 @@ async function getTickets(token:string) {
             value: ticket.TicketType.price
         }
     })
+    await prisma.ticket.update({
+      where:{
+        id:payment.ticketId
+      },
+      data:{
+        status:"PAID"
+      }
+    });
     return pay;
 }
   const paymentRepository = {
